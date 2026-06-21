@@ -1,3 +1,7 @@
+/**
+ * @file Épületek adatainak állapotkezelője.
+ * @description NgRx Signals alapú store az épületek listájának, a kiválasztott/kiemelt elemeknek és a szűrőfeltételeknek a nyilvántartására.
+ */
 import { computed, inject } from '@angular/core';
 import { signalStore, withState, withComputed, withMethods, patchState } from '@ngrx/signals';
 import { Building, BuildingFilter } from '../models/building.model';
@@ -25,6 +29,10 @@ export const BuildingStore = signalStore(
   withComputed((store) => {
     const authStore = inject(AuthStore);
     return {
+      /**
+       * Számított érték, amely visszaadja a szűrési feltételeknek (keresés, publikus/privát) megfelelő épületeket.
+       * * @returns {Building[]} A szűrt épületek tömbje.
+       */
       filteredBuildings: computed(() => {
         const userId = authStore.user()?.id;
         const { search, showPublicOnly } = store.filter();
@@ -46,6 +54,11 @@ export const BuildingStore = signalStore(
           return true;
         });
       }),
+      
+      /**
+       * Számított érték, amely visszaadja a kiválasztott épület objektumát az azonosító alapján.
+       * * @returns {Building | null} A kiválasztott épület, vagy null, ha nincs kiválasztva.
+       */
       selectedBuilding: computed(() => store.buildings().find((b) => b.id === store.selectedId()) ?? null),
     };
   }),

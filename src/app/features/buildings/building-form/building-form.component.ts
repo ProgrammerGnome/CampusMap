@@ -1,3 +1,8 @@
+/**
+ * @file Épület létrehozására és szerkesztésére szolgáló űrlap komponens.
+ * @description Kezeli a validációs logikát és a térképen történő poligon rajzolást, beleértve a visszavonás (undo/redo) funkciókat.
+ */
+
 import {
   AfterViewInit,
   Component,
@@ -33,6 +38,11 @@ import { BuildingService } from '../../../core/services/building.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Building, BuildingCreate, LatLng } from '../../../core/models/building.model';
 
+/**
+ * Egyedi validátor, amely ellenőrzi, hogy a FormArray tartalmaz-e egy megadott minimum számú pontot.
+ * * @param {number} min - A szükséges minimális pontok száma.
+ * @returns {ValidationErrors | null} Validációs hibaobjektum, ha a feltétel nem teljesül, egyébként null.
+ */
 function minPolygonPoints(min: number) {
   return (control: AbstractControl): ValidationErrors | null => {
     const arr = control as FormArray;
@@ -512,6 +522,9 @@ export class BuildingFormComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setPolygonFormArray(points);
   }
 
+  /**
+   * Visszavonja az utolsó térképes módosítást a poligonon.
+   */
   undo(): void {
     const stack = this.undoStack();
     if (!stack.length) return;
@@ -523,6 +536,9 @@ export class BuildingFormComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderExistingPolygon(prev);
   }
 
+  /**
+   * Újra végrehajtja a korábban visszavont térképes módosítást a poligonon.
+   */
   redo(): void {
     const stack = this.redoStack();
     if (!stack.length) return;
@@ -542,6 +558,9 @@ export class BuildingFormComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setPolygonFormArray([]);
   }
 
+  /**
+   * Elküldi az űrlap adatait (létrehozás vagy frissítés céljából) a szerver felé.
+   */
   submit(): void {
     this.form.get('polygon')?.markAsTouched();
     if (this.form.invalid) {
@@ -586,6 +605,9 @@ export class BuildingFormComponent implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
+  /**
+   * Visszairányítja a felhasználót a főoldalra.
+   */
   goBack(): void {
     this.router.navigate(['/']); // Visszairányítás a gyökér dashboard-ra
   }

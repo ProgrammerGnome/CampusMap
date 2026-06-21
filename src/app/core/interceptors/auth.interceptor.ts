@@ -1,11 +1,13 @@
+/**
+ * @file Autentikációs HTTP Interceptor.
+ * @description Hozzáadja a hitelesítési tokent minden kimenő HTTP kéréshez, és kezeli az illetéktelen (401) válaszokat.
+ */
 import { inject } from '@angular/core';
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthStore } from '../store/auth.store';
 
-// Adds Bearer token to any HttpClient requests and handles 401 responses.
-// The Supabase client manages its own auth headers internally.
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authStore = inject(AuthStore);
   const router = inject(Router);

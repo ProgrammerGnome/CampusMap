@@ -1,22 +1,26 @@
+/**
+ * @file JSON-Server alapú mock szerver konfigurációja.
+ * @description Biztosítja a REST API végpontokat és az egyedi bejelentkezési végpontot.
+ */
 const jsonServer = require('json-server');
 const path = require('path');
 
 const server = jsonServer.create();
-// A fájl elérése legyen abszolút útvonal
 const router = jsonServer.router(path.join(__dirname, 'db/db.json'));
 const middlewares = jsonServer.defaults();
 
-// 1. Middlewares (alapértelmezett, mint CORS, static, stb.)
 server.use(middlewares);
-
-// 2. Body Parser (nélkülözhetetlen a POST kéréshez)
 server.use(jsonServer.bodyParser);
 
-// 3. Egyedi login végpont (a router előtt!)
+/**
+ * Egyedi bejelentkezési végpont feldolgozója.
+ * * @route POST /api/login
+ * @param {Object} req - Az Express kérés objektum, amely tartalmazza a felhasználónevet és a jelszót.
+ * @param {Object} res - Az Express válasz objektum.
+ * @returns {Object} JSON válasz, amely tartalmazza a JWT tokent és a felhasználói adatokat, vagy hibaüzenetet sikertelen belépés esetén.
+ */
 server.post('/api/login', (req, res) => {
   const { username, password } = req.body;
-  
-  // router.db.getState() biztonságos elérése
   const db = router.db.getState();
   
   const user = db.users?.find(
@@ -33,10 +37,13 @@ server.post('/api/login', (req, res) => {
   });
 });
 
-// 4. API router (prefix-elése)
 server.use('/api', router);
 
 const PORT = 3000;
+
+/**
+ * A szerver indítása a megadott porton.
+ */
 server.listen(PORT, () => {
   console.log(`JSON Server fut: http://localhost:${PORT}`);
 });

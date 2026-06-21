@@ -1,4 +1,3 @@
-import 'zone.js'; // Fontos: ez legyen az első import
 import { bootstrapApplication } from '@angular/platform-browser';
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';

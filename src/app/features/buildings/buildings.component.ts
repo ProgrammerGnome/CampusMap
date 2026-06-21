@@ -1,3 +1,7 @@
+/**
+ * @file Épületek főképernyőjének komponense.
+ * @description Tartalmazza a térképes és a listás nézetet, valamint kezeli az épületek szűrését és a kétirányú interakciókat (hover, zoom, törlés, szerkesztés).
+ */
 import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild, inject, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
@@ -134,9 +138,12 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
   `]
 })
 export class BuildingsComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** A térkép HTML konténerének referenciája. */
   @ViewChild('mapContainer') mapContainer!: ElementRef<HTMLDivElement>;
 
+  /** Globális épület állapotkezelő. */
   readonly buildingStore = inject(BuildingStore);
+  
   private readonly buildingService = inject(BuildingService);
   private readonly authStore = inject(AuthStore);
   private readonly notification = inject(NotificationService);
@@ -144,61 +151,102 @@ export class BuildingsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly areaFormatPipe = new AreaFormatPipe();
 
+  /** Betöltési állapotot jelző szignál. */
   readonly loading = signal(true);
+  
+  /** Az éppen törlés alatt álló épület azonosítóját tároló szignál. */
   readonly deletingId = signal<string | null>(null);
+  
+  /** A keresőmező űrlapvezérlője. */
   readonly searchControl = new FormControl('');
 
+  /** A Leaflet térképpéldány. */
   private map!: L.Map;
+  
+  /** Az épületekhez tartozó poligon rétegek nyilvántartása, azonosító (ID) alapján. */
   private polygonLayers: Map<string, L.Polygon> = new Map();
 
+  /** A szűrt épületek listáját visszaadó számított szignál a Store-ból. */
   readonly filteredBuildings = this.buildingStore.filteredBuildings;
 
+  /**
+   * A komponens konstruktora.
+   * Inicializálja a keresőmező figyelését és a térkép szinkronizációját a listával.
+   */
   constructor() {
-    // 1. Kereső csatlakoztatása a Store-hoz biztonságosan (computed-on kívül)
     this.searchControl.valueChanges.subscribe((value) => {
       this.buildingStore.setFilter({ search: value ?? '' });
     });
 
-    // 2. Térkép szinkronizálása a szűrt listával
+    // 2. Térkép szinkronizálása a szűrt listával (KIZÁRÓLAG akkor fut le, ha a buildings tömb darabszáma vagy elemei változnak)
     effect(() => {
       const buildings = this.filteredBuildings();
       if (this.map) {
+        // Az untracked megakadályozza, hogy a store egyéb változásai (mint a selectedId) újrarenderelést váltsanak ki
         this.renderBuildings(buildings);
       }
     });
 
-    // 3. Hover kiemelés kezelése a térképen
+    // 3. Hover kiemelés ÉS kattintás alapú stíluskezelés a térképen (Nem törli a rétegeket, csak a meglévő poligonok színét módosítja!)
     effect(() => {
       const highlightedId = this.buildingStore.highlightedId();
+      const selectedId = this.buildingStore.selectedId();
+
       this.polygonLayers.forEach((layer, id) => {
-        if (id === highlightedId) {
-          layer.setStyle({ fillOpacity: 0.65, weight: 3, color: '#0d47a1' });
+        if (id === selectedId) {
+          // A rákattintott, aktív épület vastag arany/kék kiemelést kap
+          layer.setStyle({ fillOpacity: 0.7, weight: 4, color: '#ff9800' });
+        } else if (id === highlightedId) {
+          // Az éppen hoverelt épület sötétkék lesz
+          layer.setStyle({ fillOpacity: 0.6, weight: 3, color: '#0d47a1' });
         } else {
+          // Az alapértelmezett, érintetlen poligonok stílusa
           layer.setStyle({ fillOpacity: 0.35, weight: 2, color: '#1565c0' });
         }
       });
     });
   }
 
+  /**
+   * Életciklus horog: A komponens inicializálásakor lefutó metódus.
+   * Elindítja az épületek betöltését a szerverről.
+   */
   ngOnInit(): void {
     this.loadBuildings();
   }
 
+  /**
+   * Életciklus horog: A nézet inicializálása után lefutó metódus.
+   * Létrehozza és beállítja a Leaflet térképet.
+   */
   ngAfterViewInit(): void {
     this.initMap();
   }
 
+  /**
+   * Életciklus horog: A komponens megsemmisítésekor lefutó metódus.
+   * Eltávolítja a térképet a memóriaszivárgás elkerülése érdekében.
+   */
   ngOnDestroy(): void {
     this.map?.remove();
     this.buildingStore.setHighlightedId(null);
   }
 
+  /**
+   * Inicializálja a Leaflet térképet az alapértelmezett beállításokkal.
+   */
   private initMap(): void {
     this.map = L.map(this.mapContainer.nativeElement, { center: [47.498, 19.040], zoom: 16 });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(this.map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+      maxZoom: 19,
+      crossOrigin: true // Megj.: ez engedélyezi a biztonságos cross-origin képbetöltést.
+    }).addTo(this.map);
     this.renderBuildings(this.filteredBuildings());
   }
 
+  /**
+   * Betölti az épületeket a szolgáltatáson keresztül, és kezeli a betöltési állapotot.
+   */
   private loadBuildings(): void {
     this.loading.set(true);
     this.buildingService.getAll().pipe(
@@ -210,6 +258,10 @@ export class BuildingsComponent implements OnInit, AfterViewInit, OnDestroy {
     ).subscribe();
   }
 
+  /**
+   * Kirajzolja a megadott épületek poligonjait a térképre, és rájuk köti az eseménykezelőket.
+   * * @param {Building[]} buildings - A kirajzolandó épületek listája.
+   */
   private renderBuildings(buildings: Building[]): void {
     if (!this.map) return;
     this.polygonLayers.forEach(layer => this.map.removeLayer(layer));
@@ -225,46 +277,93 @@ export class BuildingsComponent implements OnInit, AfterViewInit, OnDestroy {
       const polygon = L.polygon(latLngs, { color: '#1565c0', fillColor: '#42a5f5', fillOpacity: 0.35, weight: 2 });
       polygon.bindPopup(`<b>${building.name}</b><br/>${building.code}<br/>${this.areaFormatPipe.transform(building.area)}`);
 
-      polygon.on('mouseover', () => this.buildingStore.setHighlightedId(building.id));
-      polygon.on('mouseout', () => this.buildingStore.setHighlightedId(null));
+      // Egér rávitelekor kiemeljük a bolgont a store-ban ÉS azonnal megnyitjuk a hozzá tartozó popup ablakot
+      polygon.on('mouseover', () => {
+        this.buildingStore.setHighlightedId(building.id);
+        polygon.openPopup();
+      });
+      // Egér elvitelekor töröljük a kiemelést ÉS bezárjuk a felugró ablakot
+      polygon.on('mouseout', () => {
+        this.buildingStore.setHighlightedId(null);
+        polygon.closePopup();
+      });
+      // Kattintáskor fixen ráfókuszálunk az épületre (így a popup nyitva marad, amíg máshova nem kattintunk)
       polygon.on('click', () => this.zoomToBuilding(building.id));
 
       polygon.addTo(this.map);
       this.polygonLayers.set(building.id, polygon);
     });
 
-    if (allLatLngs.length && !this.buildingStore.highlightedId()) {
-      this.map.fitBounds(L.latLngBounds(allLatLngs), { padding: [40, 40] });
+    if (allLatLngs.length && !this.buildingStore.highlightedId() && !this.buildingStore.selectedId()) {
+      this.map.fitBounds(L.latLngBounds(allLatLngs), { 
+        padding: [40, 40],
+        animate: false 
+      });
     }
   }
 
+  /**
+   * Kezeli a listaelemek feletti egerészést (hover), és frissíti a kiemelt épület azonosítóját a store-ban.
+   * * @param {boolean} isHovered - Igaz, ha az egér a listaelem felett van, egyébként hamis.
+   * @param {string} id - A listaelemhez tartozó épület azonosítója.
+   */
   onListHover(isHovered: boolean, id: string): void {
     this.buildingStore.setHighlightedId(isHovered ? id : null);
   }
 
+  /**
+   * Rázoomol a megadott épületre a térképen, és megnyitja a hozzá tartozó felugró ablakot (popup).
+   * * @param {string} id - Az épület azonosítója, amelyre a térkép fókuszál.
+   */
   zoomToBuilding(id: string): void {
+    // Elmentjük a kijelölést, így a stílus-effect azonnal kiszínezi a kiválasztott poligont
+    this.buildingStore.selectBuilding(id);
+    
     const layer = this.polygonLayers.get(id);
     if (layer) {
-      this.map.fitBounds(layer.getBounds(), { padding: [50, 50], maxZoom: 18 });
+      this.map.fitBounds(layer.getBounds(), { 
+        padding: [50, 50], 
+        maxZoom: 18,
+        animate: false // Letiltja a Leaflet belső, egymásba akadó animációs remegését
+      });
       layer.openPopup();
     }
   }
 
+  /**
+   * Ellenőrzi, hogy a bejelentkezett felhasználó-e az adott épület tulajdonosa.
+   * * @param {Building} building - A vizsgálandó épület.
+   * @returns {boolean} Igaz, ha a felhasználó a tulajdonos, egyébként hamis.
+   */
   isOwner(building: Building): boolean {
     return building.userId === this.authStore.user()?.id;
   }
 
+  /**
+   * Kezeli a dupla kattintást egy épület kártyáján. Ha a felhasználó a tulajdonos, megnyitja a szerkesztő nézetet.
+   * * @param {Building} building - A szerkesztendő épület.
+   */
   handleDblClick(building: Building): void {
     if (this.isOwner(building)) {
       this.router.navigate(['/buildings', building.id, 'edit']);
     }
   }
 
+  /**
+   * Átirányít a megadott épület szerkesztési oldalára.
+   * * @param {Building} building - A szerkesztendő épület.
+   * @param {Event} event - A kattintási esemény objektum.
+   */
   editBuilding(building: Building, event: Event): void {
     event.stopPropagation();
     this.router.navigate(['/buildings', building.id, 'edit']);
   }
 
+  /**
+   * Törlési megerősítő párbeszédablakot nyit meg a megadott épülethez.
+   * * @param {Building} building - A törlendő épület.
+   * @param {Event} event - A kattintási esemény objektum.
+   */
   confirmDelete(building: Building, event: Event): void {
     event.stopPropagation();
     const ref = this.dialog.open(ConfirmDialogComponent, {
@@ -275,6 +374,10 @@ export class BuildingsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Végrehajtja egy épület törlését az adatbázisból, és kezeli a betöltési/hiba állapotokat.
+   * * @param {string} id - A törlendő épület azonosítója.
+   */
   private deleteBuilding(id: string): void {
     this.deletingId.set(id);
     this.buildingService.delete(id).pipe(
