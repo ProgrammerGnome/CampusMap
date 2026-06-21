@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild, inject, effect, computed, signal } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild, inject, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -44,19 +44,19 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
       </div>
       <div class="list-section">
         <div class="list-header">
-          <h2>Épületek listája</h2>
+          <h2>Épületek</h2>
           <button mat-raised-button color="primary" routerLink="/buildings/new">
             <mat-icon>add</mat-icon> Új épület
           </button>
         </div>
         <div class="filter-bar">
           <mat-form-field appearance="outline" class="search-field">
-            <mat-label>Keresés (név, kód)</mat-label>
+            <mat-label>Keresés</mat-label>
             <input matInput [formControl]="searchControl" placeholder="Név, kód..." />
             <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
           <mat-slide-toggle [checked]="buildingStore.showOwnAndPublic()" (change)="buildingStore.setShowOwnAndPublic($event.checked)">
-            Saját + Nyilvános
+            Saját + Nyilvános épületek
           </mat-slide-toggle>
         </div>
         <div class="buildings-list">
@@ -95,7 +95,7 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
                 }
                 <span class="spacer"></span>
                 @if (isOwner(building)) {
-                  <button mat-icon-button matTooltip="Szerkesztés (Dupla-Katt)" color="primary" (click)="editBuilding(building, $event)">
+                  <button mat-icon-button matTooltip="Szerkesztés" color="primary" (click)="editBuilding(building, $event)">
                     <mat-icon>edit</mat-icon>
                   </button>
                   <button mat-icon-button matTooltip="Törlés" color="warn" [disabled]="deletingId() === building.id" (click)="confirmDelete(building, $event)">
@@ -110,27 +110,27 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
     </div>
   `,
   styles: [`
-    .dashboard-container { display: flex; height: 100%; overflow: hidden; }
-    .map-section { flex: 2; position: relative; }
+    .dashboard-container { display: flex; height: 100%; width: 100%; overflow: hidden; }
+    .map-section { flex: 2; position: relative; height: 100%; }
     .map-container { width: 100%; height: 100%; }
     .loading-overlay { position: absolute; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.7); }
-    .list-section { flex: 1; min-width: 380px; max-width: 450px; display: flex; flex-direction: column; background: #fff; border-left: 1px solid #e0e0e0; box-shadow: -2px 0 8px rgba(0,0,0,0.05); z-index: 10; }
+    .list-section { flex: 1; min-width: 380px; max-width: 450px; display: flex; flex-direction: column; background: #fff; border-left: 1px solid #e0e0e0; box-shadow: -2px 0 8px rgba(0,0,0,0.05); z-index: 10; height: 100%; }
     .list-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #eee; }
-    .list-header h2 { margin: 0; font-size: 1.25rem; }
+    .list-header h2 { margin: 0; font-size: 1.25rem; font-weight: 600; }
     .filter-bar { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #eee; }
-    .search-field { width: 100%; margin-bottom: -16px; }
+    .search-field { width: 100%; }
     .buildings-list { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; background: #f9f9f9; }
     .empty-state { text-align: center; color: #888; padding: 40px 0; }
     .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.5; margin-bottom: 8px; }
-    .building-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-    .building-card.highlighted { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(21,101,192,0.25) !important; border: 1px solid #42a5f5; }
+    .building-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid transparent; }
+    .building-card:hover, .building-card.highlighted { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(21,101,192,0.2) !important; border: 1px solid #42a5f5; }
     .description { font-size: 0.85rem; color: #666; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .stats { display: flex; gap: 16px; font-size: 0.85rem; color: #444; }
     .stats span { display: flex; align-items: center; gap: 4px; }
-    .card-actions { display: flex; align-items: center; padding: 0 8px 8px; }
+    .card-actions { display: flex; align-items: center; padding: 8px 16px; }
     .spacer { flex: 1; }
-    .public-chip { background: #e3f2fd !important; color: #1565c0 !important; font-size: 0.75rem; min-height: 24px; padding: 0 10px; }
-    .private-chip { background: #fff3e0 !important; color: #e65100 !important; font-size: 0.75rem; min-height: 24px; padding: 0 10px; }
+    .public-chip { background: #e3f2fd !important; color: #1565c0 !important; font-size: 0.75rem; }
+    .private-chip { background: #fff3e0 !important; color: #e65100 !important; font-size: 0.75rem; }
   `]
 })
 export class BuildingsComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -151,13 +151,15 @@ export class BuildingsComponent implements OnInit, AfterViewInit, OnDestroy {
   private map!: L.Map;
   private polygonLayers: Map<string, L.Polygon> = new Map();
 
-  readonly filteredBuildings = computed(() => {
-    const search = this.searchControl.value ?? '';
-    this.buildingStore.setFilter({ search });
-    return this.buildingStore.filteredBuildings();
-  });
+  readonly filteredBuildings = this.buildingStore.filteredBuildings;
 
   constructor() {
+    // 1. Kereső csatlakoztatása a Store-hoz biztonságosan (computed-on kívül)
+    this.searchControl.valueChanges.subscribe((value) => {
+      this.buildingStore.setFilter({ search: value ?? '' });
+    });
+
+    // 2. Térkép szinkronizálása a szűrt listával
     effect(() => {
       const buildings = this.filteredBuildings();
       if (this.map) {
@@ -165,12 +167,12 @@ export class BuildingsComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Handle highglighting on map when hovering list item
+    // 3. Hover kiemelés kezelése a térképen
     effect(() => {
       const highlightedId = this.buildingStore.highlightedId();
       this.polygonLayers.forEach((layer, id) => {
         if (id === highlightedId) {
-          layer.setStyle({ fillOpacity: 0.7, weight: 4, color: '#0d47a1' });
+          layer.setStyle({ fillOpacity: 0.65, weight: 3, color: '#0d47a1' });
         } else {
           layer.setStyle({ fillOpacity: 0.35, weight: 2, color: '#1565c0' });
         }
@@ -225,9 +227,7 @@ export class BuildingsComponent implements OnInit, AfterViewInit, OnDestroy {
 
       polygon.on('mouseover', () => this.buildingStore.setHighlightedId(building.id));
       polygon.on('mouseout', () => this.buildingStore.setHighlightedId(null));
-      polygon.on('click', () => {
-         this.map.fitBounds(polygon.getBounds(), { padding: [50, 50], maxZoom: 18 });
-      });
+      polygon.on('click', () => this.zoomToBuilding(building.id));
 
       polygon.addTo(this.map);
       this.polygonLayers.set(building.id, polygon);
