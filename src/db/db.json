@@ -1,0 +1,59 @@
+{
+  "users": [
+    { "id": "1", "username": "admin", "password": "test01" },
+    { "id": "2", "username": "user2", "password": "test01" }
+  ],
+  "buildings": [
+    {
+      "id": "1",
+      "name": "Fő épület",
+      "code": "FO-01",
+      "description": "A kampusz fő oktatási épülete, öt emelettel és két előadóteremmel.",
+      "floors": 5,
+      "area": 2500,
+      "polygon": [
+        { "lat": 47.4979, "lng": 19.0402 },
+        { "lat": 47.4983, "lng": 19.0402 },
+        { "lat": 47.4983, "lng": 19.0410 },
+        { "lat": 47.4979, "lng": 19.0410 }
+      ],
+      "isPublic": true,
+      "userId": "1",
+      "createdAt": "2026-01-10T08:00:00Z"
+    },
+    {
+      "id": "2",
+      "name": "Könyvtár",
+      "code": "KO-01",
+      "description": "Kampusz könyvtár és tanulóterem.",
+      "floors": 2,
+      "area": 1200,
+      "polygon": [
+        { "lat": 47.4985, "lng": 19.0415 },
+        { "lat": 47.4988, "lng": 19.0415 },
+        { "lat": 47.4988, "lng": 19.0422 },
+        { "lat": 47.4985, "lng": 19.0422 }
+      ],
+      "isPublic": true,
+      "userId": "1",
+      "createdAt": "2026-01-15T09:00:00Z"
+    },
+    {
+      "id": "3",
+      "name": "Sportcsarnok",
+      "code": "SP-01",
+      "description": "Fedett sportlétesítmény.",
+      "floors": 1,
+      "area": 3000,
+      "polygon": [
+        { "lat": 47.4970, "lng": 19.0420 },
+        { "lat": 47.4975, "lng": 19.0420 },
+        { "lat": 47.4975, "lng": 19.0430 },
+        { "lat": 47.4970, "lng": 19.0430 }
+      ],
+      "isPublic": false,
+      "userId": "2",
+      "createdAt": "2026-02-01T10:00:00Z"
+    }
+  ]
+}

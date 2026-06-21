@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Roboto', sans-serif;
+  background: #f8f9fa;
+  color: #1a1a2e;
+}
+
+/* Material theme overrides */
+.mat-mdc-snack-bar-container.snack-success .mdc-snackbar__surface {
+  background: #2e7d32 !important;
+  color: #fff !important;
+}
+.mat-mdc-snack-bar-container.snack-error .mdc-snackbar__surface {
+  background: #c62828 !important;
+  color: #fff !important;
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
