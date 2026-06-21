@@ -6,6 +6,7 @@ import { AuthStore } from './auth.store';
 interface BuildingState {
   buildings: Building[];
   selectedId: string | null;
+  highlightedId: string | null;
   filter: BuildingFilter;
   showOwnAndPublic: boolean;
 }
@@ -13,6 +14,7 @@ interface BuildingState {
 const initialState: BuildingState = {
   buildings: [],
   selectedId: null,
+  highlightedId: null,
   filter: { search: '', showPublicOnly: false },
   showOwnAndPublic: true,
 };
@@ -44,34 +46,19 @@ export const BuildingStore = signalStore(
           return true;
         });
       }),
-      selectedBuilding: computed(() =>
-        store.buildings().find((b) => b.id === store.selectedId()) ?? null
-      ),
+      selectedBuilding: computed(() => store.buildings().find((b) => b.id === store.selectedId()) ?? null),
     };
   }),
   withMethods((store) => ({
-    setBuildings(buildings: Building[]): void {
-      patchState(store, { buildings });
-    },
-    addBuilding(building: Building): void {
-      patchState(store, { buildings: [...store.buildings(), building] });
-    },
+    setBuildings(buildings: Building[]): void { patchState(store, { buildings }); },
+    addBuilding(building: Building): void { patchState(store, { buildings: [...store.buildings(), building] }); },
     updateBuilding(updated: Building): void {
-      patchState(store, {
-        buildings: store.buildings().map((b) => (b.id === updated.id ? updated : b)),
-      });
+      patchState(store, { buildings: store.buildings().map((b) => (b.id === updated.id ? updated : b)) });
     },
-    removeBuilding(id: string): void {
-      patchState(store, { buildings: store.buildings().filter((b) => b.id !== id) });
-    },
-    selectBuilding(id: string | null): void {
-      patchState(store, { selectedId: id });
-    },
-    setFilter(filter: Partial<BuildingFilter>): void {
-      patchState(store, { filter: { ...store.filter(), ...filter } });
-    },
-    setShowOwnAndPublic(value: boolean): void {
-      patchState(store, { showOwnAndPublic: value });
-    },
+    removeBuilding(id: string): void { patchState(store, { buildings: store.buildings().filter((b) => b.id !== id) }); },
+    selectBuilding(id: string | null): void { patchState(store, { selectedId: id }); },
+    setHighlightedId(id: string | null): void { patchState(store, { highlightedId: id }); },
+    setFilter(filter: Partial<BuildingFilter>): void { patchState(store, { filter: { ...store.filter(), ...filter } }); },
+    setShowOwnAndPublic(value: boolean): void { patchState(store, { showOwnAndPublic: value }); },
   }))
 );

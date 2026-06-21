@@ -7,8 +7,7 @@ export const routes: Routes = [
   {
     path: 'login',
     canActivate: [guestGuard],
-    loadComponent: () =>
-      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+    loadComponent: () => import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: '',
@@ -17,29 +16,15 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () =>
-          import('./features/home/home.component').then((m) => m.HomeComponent),
-      },
-      {
-        path: 'buildings',
-        loadComponent: () =>
-          import('./features/buildings/buildings.component').then(
-            (m) => m.BuildingsComponent
-          ),
+        loadComponent: () => import('./features/buildings/buildings.component').then((m) => m.BuildingsComponent),
       },
       {
         path: 'buildings/new',
-        loadComponent: () =>
-          import('./features/buildings/building-form/building-form.component').then(
-            (m) => m.BuildingFormComponent
-          ),
+        loadComponent: () => import('./features/buildings/building-form/building-form.component').then((m) => m.BuildingFormComponent),
       },
       {
         path: 'buildings/:id/edit',
-        loadComponent: () =>
-          import('./features/buildings/building-form/building-form.component').then(
-            (m) => m.BuildingFormComponent
-          ),
+        loadComponent: () => import('./features/buildings/building-form/building-form.component').then((m) => m.BuildingFormComponent),
       },
     ],
   },

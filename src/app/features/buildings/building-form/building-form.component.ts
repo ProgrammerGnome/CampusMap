@@ -575,22 +575,18 @@ export class BuildingFormComponent implements OnInit, AfterViewInit, OnDestroy {
     request$
       .pipe(
         catchError((err) => {
-          this.notification.error(
-            this.isEdit ? 'Mentés sikertelen.' : 'Létrehozás sikertelen.'
-          );
+          this.notification.error(this.isEdit ? 'Mentés sikertelen.' : 'Létrehozás sikertelen.');
           return throwError(() => err);
         }),
         finalize(() => this.saving.set(false))
       )
       .subscribe(() => {
-        this.notification.success(
-          this.isEdit ? 'Épület sikeresen mentve.' : 'Épület sikeresen létrehozva.'
-        );
-        this.router.navigate(['/buildings']);
+        this.notification.success(this.isEdit ? 'Épület sikeresen mentve.' : 'Épület sikeresen létrehozva.');
+        this.router.navigate(['/']); // Visszairányítás a gyökér dashboard-ra
       });
   }
 
   goBack(): void {
-    this.router.navigate(['/buildings']);
+    this.router.navigate(['/']); // Visszairányítás a gyökér dashboard-ra
   }
 }
