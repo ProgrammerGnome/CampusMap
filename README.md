@@ -1,6 +1,6 @@
 # CampusMap
 
-A **CampusMap** egy modern, térképalapú webalkalmazás kampuszok és épületek nyilvántartására, valamint interaktív vizuális megjelenítésére. A projekt bemutatja az Angular legújabb funkcióinak (**Standalone Components**, **Signals**, új **Control Flow**) és a **Leaflet** interaktív térképkezelésének zökkenőmentes integrációját.
+A **CampusMap** egy modern, térképalapú webalkalmazás épületek nyilvántartására, valamint interaktív vizuális megjelenítésére. A projekt bemutatja az Angular legújabb funkcióinak (**Standalone Components**, **Signals**, új **Control Flow**) és a **Leaflet** interaktív térképkezelésének zökkenőmentes integrációját.
 
 ---
 
