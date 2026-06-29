@@ -1,6 +1,6 @@
 export interface LatLng {
-  lat: number;
-  lng: number;
+  lat: number; //Latitude
+  lng: number; //Longitude
 }
 
 export interface Building {
